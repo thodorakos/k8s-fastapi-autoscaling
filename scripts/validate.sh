@@ -37,7 +37,7 @@ minikube -p "$PROFILE" addons enable metrics-server >/dev/null 2>&1 || die "metr
 kubectl wait --for=condition=available deploy -l k8s-app=metrics-server -n kube-system --timeout=5m >/dev/null || die "metrics-server never became available"
 echo "  ✓ metrics-server ok"
 
-say "Wait for metrics to be available to the HPA (takes ~30s of cold-cache topology)"
+say "Wait for metrics to be available to the HPA (cold cache can take ~30s)"
 HOLD=${WAIT_TOP:-60}
 sleep "$HOLD"
 
@@ -88,4 +88,4 @@ echo "  ✓ HPA scaled back to 1"
 say "All cluster objects"
 kubectl get all,hpa -n "$NS"
 
-say "PASS ✅  autoscaling demo stands ready"
+say "PASS ✅  autoscaling demo works end to end"

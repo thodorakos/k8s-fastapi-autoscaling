@@ -1,10 +1,9 @@
 # k8s-fastapi-autoscaling
 
-A deliberately boring app (FastAPI) that exists for **one reason**: to demonstrate
+A deliberately plain app (FastAPI) that exists for **one reason**: to demonstrate
 Horizontal Pod Autoscaling on a real cluster, driven by real CPU pressure, verified
-by real assertions. Complement to [`k8s-go-microservices`](https://github.com/thodorakos/k8s-go-microservices):
-
-no Helm here — plain multi-document YAML so a junior engineer can read every
+by real assertions. It complements [`k8s-go-microservices`](https://github.com/thodorakos/k8s-go-microservices):
+no Helm here, just plain multi-document YAML so a junior engineer can read every
 manifest top to bottom and see exactly what the API server consumes.
 
 ## Architecture
@@ -28,9 +27,8 @@ manifest top to bottom and see exactly what the API server consumes.
 | `GET /stats`  | live CPU load (`psutil`): stats used as the external proof     |
 | `GET /burn?seconds=40` | busy-loops `sha256` for N seconds to *actually* peg CPU |
 
-The burn endpoint is the honest way to trigger scaling — no fake metric
-mountains, just CPU mats: HPA watches `Resource CPU utilization > 50%` against
-`requests: 100m / limits: 500m`.
+The burn endpoint triggers scaling with actual CPU load, the kind the HPA can
+see: `Resource CPU utilization > 50%` against `requests: 100m / limits: 500m`.
 
 Layout:
 
@@ -60,7 +58,7 @@ minikube start -p p2-fastapi-hpa --driver=docker --cpus=2 --memory=1950 \
 ```
 
 (The `--apiserver-ips/--apiserver-name` pair is the WSL2 workaround for uppercase
-hostnames breaking kubeadm cert SANs — minikube issue #9175.)
+hostnames breaking kubeadm cert SANs, minikube issue #9175.)
 
 ## Manual exploration
 
@@ -126,9 +124,9 @@ service/powinfo   ClusterIP   10.109.117.195   8080/TCP
 NAME                                          REFERENCE            TARGETS     MINPODS   MAXPODS   REPLICAS
 horizontalpodautoscaler.autoscaling/powinfo   Deployment/powinfo   cpu: 3%/50%   1         5         1
 
-==> PASS ✅  autoscaling demo stands ready
+==> PASS ✅  autoscaling demo works end to end
 ```
 
-The story in one line: 4% idle → burn 4×40s → **scale 1→4 replicas at 307% of target
+The run in numbers: 4% idle → burn 4×40s → **scale 1→4 replicas at 307% of target
 50%** → cooldown → **back to 1 replica**, all asserted with real exit codes.
 

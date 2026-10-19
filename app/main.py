@@ -23,7 +23,7 @@ def root():
         "service": SERVICE,
         "version": VERSION,
         "pod": pod_name(),
-        "message": "reserving capacity: this pod is my most precious asset",
+        "message": "reserving capacity: this pod exists to be scaled",
     }
 
 
