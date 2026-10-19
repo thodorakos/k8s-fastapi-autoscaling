@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: loadgen
+  namespace: hpa-demo
+  labels:
+    app.kubernetes.io/name: loadgen
+spec:
+  restartPolicy: Never
+  containers:
+    - name: loadgen
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "traffic generator: hammering powinfo / and /stats every second"
+          while true; do
+            wget -q -O /dev/null http://powinfo:8080/ || true
+            sleep 1
+          done
