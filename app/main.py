@@ -5,12 +5,22 @@ import random
 import hashlib
 
 import psutil
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+from prometheus_client import Counter, Gauge, generate_latest
 
 SERVICE = "powinfo"
 VERSION = "v1"
 
 app = FastAPI()
+
+REQS = Counter("powinfo_http_requests_total", "HTTP requests served", ["path"])
+CPU = Gauge("powinfo_cpu_percent", "Instantaneous process/node CPU % from psutil")
+
+
+@app.middleware("http")
+async def count_requests(request, call_next):
+    REQS.labels(path=request.url.path).inc()
+    return await call_next(request)
 
 
 def pod_name() -> str:
@@ -39,6 +49,12 @@ def stats():
         "cpu_percent": psutil.cpu_percent(interval=0.2),
         "load_avg": psutil.getloadavg(),
     }
+
+
+@app.get("/metrics")
+def metrics():
+    CPU.set(psutil.cpu_percent(interval=None))
+    return Response(content=generate_latest(), media_type="text/plain; version=0.0.4")
 
 
 @app.get("/burn")
